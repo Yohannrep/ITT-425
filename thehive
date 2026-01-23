@@ -1,0 +1,47 @@
+version: "3"
+
+services:
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.17.13
+    restart: unless-stopped
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - ES_JAVA_OPTS=-Xms1g -Xmx1g
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - esdata:/usr/share/elasticsearch/data
+    ports:
+      - "9200:9200"
+
+  cortex:
+    image: thehiveproject/cortex:3.1.1
+    restart: unless-stopped
+    depends_on:
+      - elasticsearch
+    ports:
+      - "9001:9001"
+    volumes:
+      - ./cortex/application.conf:/etc/cortex/application.conf
+      - cortex_data:/data
+
+  thehive:
+    image: strangebee/thehive:5
+    restart: unless-stopped
+    depends_on:
+      - elasticsearch
+      - cortex
+    ports:
+      - "9000:9000"
+    environment:
+      - THEHIVE_LOG_LEVEL=info
+    volumes:
+      - thehive_data:/data
+
+volumes:
+  thehive_data:
+  cortex_data:
+  esdata:
