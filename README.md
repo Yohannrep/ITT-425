@@ -8,7 +8,8 @@ Students will deploy services using Docker Compose on a **fresh Ubuntu virtual m
 ## Included Tools
 
 - **Shuffle** – Security Orchestration, Automation, and Response (SOAR)
-- **TheHive** – Incident Response and Case Management
+- **TheHive** – Incident Response and Case Management  
+  - Includes **Cortex** for observable analysis and automated responders (deployed within the same Docker Compose file)
 
 Each tool is deployed using its own `docker-compose.yml` file.
 
