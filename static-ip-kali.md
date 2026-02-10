@@ -5,7 +5,6 @@ This guide shows how to set a **static IPv4 address** on a **Kali Linux VM** usi
 
 ---
 
-## 🧭 Step-by-Step Commands (Copy & Paste Friendly)
 
 ### 1️⃣ List NetworkManager connections
 ```bash
