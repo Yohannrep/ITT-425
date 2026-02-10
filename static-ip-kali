@@ -1,0 +1,144 @@
+
+# Kali Linux – Set Static IP Using `nmcli` (Proxmox NAT)
+
+This guide explains how to configure a **static IPv4 address** on a Kali Linux VM using **NetworkManager (`nmcli`)** when running on a **Proxmox NAT bridge**.
+
+
+## Step 1: List NetworkManager Connections
+
+```bash
+nmcli connection show
+````
+
+Example output:
+
+```text
+Wired connection 1
+```
+
+> ⚠️ **Important:**
+> The *connection name* (e.g., `Wired connection 1`) is what we modify — **not** the interface name.
+
+---
+
+## Step 2: Bind the Connection to the NIC
+
+Attach the NetworkManager connection to the correct interface:
+
+```bash
+sudo nmcli connection modify "Wired connection 1" connection.interface-name ens18
+```
+
+This resolves cases where the NIC exists but is not actively connected.
+
+---
+
+## Step 3: Configure the Static IPv4 Address
+
+### Example Proxmox NAT Configuration
+
+* Subnet: `192.168.253.0/24`
+* Gateway: `192.168.253.1`
+
+```bash
+sudo nmcli connection modify "Wired connection 1" \
+  ipv4.method manual \
+  ipv4.addresses 192.168.253.50/24 \
+  ipv4.gateway 192.168.253.1 \
+  ipv4.dns "1.1.1.1 8.8.8.8"
+```
+
+### Notes
+
+* Replace `192.168.253.50` with any **unused IP**
+* Ensure the subnet and gateway match your Proxmox NAT bridge
+
+---
+
+## Step 4: Restart the Network Connection
+
+```bash
+sudo nmcli connection down "Wired connection 1"
+sudo nmcli connection up "Wired connection 1"
+```
+
+> A brief network drop is expected.
+
+---
+
+## Step 5: Verify Configuration
+
+```bash
+ip a
+ip route
+```
+
+Expected output:
+
+* Static IP assigned to `ens18`
+* Default route via `192.168.253.1`
+
+---
+
+## Step 6: Test Connectivity
+
+```bash
+ping 192.168.253.1
+ping 8.8.8.8
+ping google.com
+```
+
+All tests should succeed.
+
+---
+
+## Troubleshooting
+
+### Interface Shows as `unmanaged`
+
+Check status:
+
+```bash
+nmcli device status
+```
+
+Fix:
+
+```bash
+sudo nmcli device set ens18 managed yes
+sudo systemctl restart NetworkManager
+```
+
+---
+
+### Reset the Network Connection (Last Resort)
+
+```bash
+sudo nmcli connection delete "Wired connection 1"
+sudo nmcli connection add type ethernet ifname ens18 con-name kali-static
+```
+
+Reapply the static IP configuration using `kali-static`.
+
+---
+
+## Quick Command Summary
+
+```bash
+nmcli con show
+nmcli con mod "Wired connection 1" connection.interface-name ens18
+nmcli con mod "Wired connection 1" ipv4.method manual ipv4.addresses 192.168.253.50/24 ipv4.gateway 192.168.253.1 ipv4.dns "1.1.1.1 8.8.8.8"
+nmcli con down "Wired connection 1"
+nmcli con up "Wired connection 1"
+```
+
+---
+
+## Notes for Lab Environments
+
+* Use **NAT** for internet access
+* Use **internal bridges** for attack/defense labs
+* Dual-NIC Kali setups are recommended for SOC and pentesting labs
+
+---
+
