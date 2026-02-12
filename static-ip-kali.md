@@ -110,13 +110,107 @@ nmcli con down "Wired connection 1" && nmcli con up "Wired connection 1"
 
 ---
 
-## 🧪 Lab Notes
+Ahhh okay — you want to set it the **classic network interface file way**, not `nmcli`. Let’s do it.
 
-* NAT = internet access
-* Internal bridge = attack/defense traffic
-* Dual-NIC Kali is ideal for SOC & pentesting labs
+⚠️ Important first:
+Modern Kali uses **NetworkManager by default**, so we either disable it or tell it to leave the interface alone.
 
-📎 Tested on Kali Linux running on Proxmox VE
+---
+
+# 🐉 Set Static IP on Kali (via `/etc/network/interfaces`)
+
+## 1️⃣ Disable NetworkManager control for the interface
+
+Open:
+
+```bash
+sudo nano /etc/NetworkManager/NetworkManager.conf
+```
+
+Make sure this exists:
 
 ```
+[ifupdown]
+managed=false
 ```
+
+Save & exit.
+
+---
+
+## 2️⃣ Edit the interfaces file
+
+```bash
+sudo nano /etc/network/interfaces
+```
+
+Replace everything with something like this:
+
+```bash
+auto lo
+iface lo inet loopback
+
+auto ens18
+iface ens18 inet static
+    address 192.168.253.50
+    netmask 255.255.255.0
+    gateway 192.168.253.1
+    dns-nameservers 1.1.1.1 8.8.8.8
+```
+
+🔹 Change:
+
+* `ens18` → your interface (`ip a` to confirm)
+* IP / gateway → match your network
+
+---
+
+## 3️⃣ Restart networking
+
+```bash
+sudo systemctl restart networking
+```
+
+If that fails:
+
+```bash
+sudo ifdown ens18
+sudo ifup ens18
+```
+
+---
+
+## 4️⃣ Verify
+
+```bash
+ip a
+ip route
+```
+
+---
+
+# 🧠 Important Notes
+
+If it doesn’t apply:
+
+You may need to **disable NetworkManager completely**:
+
+```bash
+sudo systemctl stop NetworkManager
+sudo systemctl disable NetworkManager
+sudo systemctl restart networking
+```
+
+---
+
+# 🚀 Quick Example for Proxmox NAT
+
+```bash
+address 192.168.253.50
+netmask 255.255.255.0
+gateway 192.168.253.1
+```
+
+---
+
+
