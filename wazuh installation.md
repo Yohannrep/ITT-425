@@ -1,8 +1,3 @@
-Here’s your cleaned-up, properly formatted **GitHub-ready README.md** version 👇
-(Structured, clean sections, copy-paste friendly.)
-
----
-
 # 🛡️ Wazuh 4.12 Installation Guide
 
 ## Single Node Deployment on Ubuntu 22.04.5 (VM)
